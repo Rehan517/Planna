@@ -2,6 +2,7 @@ import React from 'react'
 import { Tabs } from 'expo-router'
 import { View, StyleSheet, Platform } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { Ionicons } from '@expo/vector-icons'
 import { Colors } from '../../../constants/Colors'
 import { Typography } from '../../../constants/Typography'
 import { Layout } from '../../../constants/Layout'
@@ -29,8 +30,8 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Calendar',
-          tabBarIcon: ({ color }) => (
-            <View style={[styles.icon, { backgroundColor: color }]} />
+          tabBarIcon: ({ color, size = 24 }) => (
+            <Ionicons name="calendar-outline" size={size} color={color} />
           ),
         }}
       />
@@ -38,8 +39,8 @@ export default function TabLayout() {
         name="lists"
         options={{
           title: 'Lists',
-          tabBarIcon: ({ color }) => (
-            <View style={[styles.icon, { backgroundColor: color }]} />
+          tabBarIcon: ({ color, size = 24 }) => (
+            <Ionicons name="list-outline" size={size} color={color} />
           ),
         }}
       />
@@ -47,8 +48,8 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: 'Profile',
-          tabBarIcon: ({ color }) => (
-            <View style={[styles.icon, { backgroundColor: color }]} />
+          tabBarIcon: ({ color, size = 24 }) => (
+            <Ionicons name="person-outline" size={size} color={color} />
           ),
         }}
       />
@@ -65,10 +66,5 @@ const styles = StyleSheet.create({
   tabBarLabel: {
     ...Typography.caption,
     marginBottom: Platform.OS === 'ios' ? 0 : 4,
-  },
-  icon: {
-    width: 24,
-    height: 24,
-    borderRadius: 4,
   },
 }) 
