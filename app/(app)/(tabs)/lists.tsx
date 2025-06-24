@@ -8,7 +8,7 @@ import { Layout } from '../../../constants/Layout'
 import { useListStore } from '../../../store/listStore'
 
 export default function ListsScreen() {
-  const { lists, createList, items } = useListStore()
+  const { lists, createList, items, deleteList } = useListStore()
   
   const handleCreateList = () => {
     Alert.prompt(
@@ -31,6 +31,24 @@ export default function ListsScreen() {
       'plain-text',
       '',
       'default'
+    )
+  }
+  
+  const handleDeleteList = (listId: string, listName: string) => {
+    const itemCount = getItemCount(listId)
+    const itemText = itemCount === 1 ? 'item' : 'items'
+    
+    Alert.alert(
+      'Delete List',
+      `Are you sure you want to delete "${listName}"?${itemCount > 0 ? `\n\nThis will also delete ${itemCount} ${itemText}.` : ''}`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Delete', 
+          style: 'destructive',
+          onPress: () => deleteList(listId)
+        }
+      ]
     )
   }
   
@@ -59,8 +77,12 @@ export default function ListsScreen() {
           lists.map((list) => (
             <Pressable
               key={list.id}
-              style={styles.listCard}
+              style={({ pressed }) => [
+                styles.listCard,
+                pressed && styles.listCardPressed
+              ]}
               onPress={() => navigateToList(list.id, list.name)}
+              onLongPress={() => handleDeleteList(list.id, list.name)}
             >
               <View style={styles.listIcon}>
                 <Ionicons name="list-outline" size={24} color={Colors.primary} />
@@ -135,6 +157,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
+  },
+  listCardPressed: {
+    backgroundColor: Colors.surfacePressed,
   },
   listIcon: {
     width: 48,
