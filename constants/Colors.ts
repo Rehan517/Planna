@@ -3,6 +3,7 @@ export const Colors = {
   secondary: '#666666',
   background: '#FFFFFF',
   surface: '#FAFAFA',
+  surfacePressed: '#F0F0F0',
   border: '#E0E0E0',
   
   text: {
