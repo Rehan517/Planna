@@ -6,32 +6,18 @@ import { Colors } from '../../../constants/Colors'
 import { Typography } from '../../../constants/Typography'
 import { Layout } from '../../../constants/Layout'
 import { useListStore } from '../../../store/listStore'
+import { useAuthStore } from '../../../store/authStore'
 
 export default function ListsScreen() {
-  const { lists, createList, items, deleteList } = useListStore()
+  const { lists, items, deleteList } = useListStore()
+  const { user } = useAuthStore()
+  
+  // Filter lists by type
+  const personalLists = lists.filter(list => !list.shared && list.createdBy === user?.id)
+  const sharedLists = lists.filter(list => list.shared)
   
   const handleCreateList = () => {
-    Alert.prompt(
-      'New List',
-      'Enter list name:',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Create', 
-          onPress: (listName) => {
-            if (listName?.trim()) {
-              createList({
-                groupId: '1',
-                name: listName.trim(),
-              })
-            }
-          }
-        }
-      ],
-      'plain-text',
-      '',
-      'default'
-    )
+    router.push('/list/create')
   }
   
   const handleDeleteList = (listId: string, listName: string) => {
@@ -63,6 +49,57 @@ export default function ListsScreen() {
     return items.filter(item => item.listId === listId).length
   }
   
+  const renderListCard = (list: any) => (
+    <Pressable
+      key={list.id}
+      style={({ pressed }) => [
+        styles.listCard,
+        pressed && styles.listCardPressed
+      ]}
+      onPress={() => navigateToList(list.id, list.name)}
+      onLongPress={() => handleDeleteList(list.id, list.name)}
+    >
+      <View style={styles.listIcon}>
+        <Ionicons 
+          name={list.shared ? "people-outline" : "person-outline"} 
+          size={24} 
+          color={list.shared ? Colors.primary : Colors.text.secondary} 
+        />
+      </View>
+      
+      <View style={styles.listInfo}>
+        <Text style={styles.listName}>{list.name}</Text>
+        <Text style={styles.listSubtitle}>
+          {getItemCount(list.id)} items
+          {list.shared && <Text style={styles.sharedIndicator}> • Shared</Text>}
+        </Text>
+      </View>
+      
+      <Ionicons name="chevron-forward" size={20} color={Colors.text.disabled} />
+    </Pressable>
+  )
+  
+  const renderEmptySection = (sectionType: 'personal' | 'shared') => (
+    <View style={styles.emptySectionState}>
+      <Ionicons 
+        name={sectionType === 'personal' ? "person-outline" : "people-outline"} 
+        size={48} 
+        color={Colors.text.disabled} 
+      />
+      <Text style={styles.emptySectionTitle}>
+        No {sectionType === 'personal' ? 'Personal' : 'Shared'} Lists
+      </Text>
+      <Text style={styles.emptySectionSubtitle}>
+        {sectionType === 'personal' 
+          ? 'Create a personal list that only you can see'
+          : 'Create a shared list that all group members can access'
+        }
+      </Text>
+    </View>
+  )
+  
+  const hasAnyLists = personalLists.length > 0 || sharedLists.length > 0
+  
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -72,33 +109,8 @@ export default function ListsScreen() {
         </Pressable>
       </View>
       
-      <ScrollView style={styles.listsContainer} showsVerticalScrollIndicator={false}>
-        {lists.length > 0 ? (
-          lists.map((list) => (
-            <Pressable
-              key={list.id}
-              style={({ pressed }) => [
-                styles.listCard,
-                pressed && styles.listCardPressed
-              ]}
-              onPress={() => navigateToList(list.id, list.name)}
-              onLongPress={() => handleDeleteList(list.id, list.name)}
-            >
-              <View style={styles.listIcon}>
-                <Ionicons name="list-outline" size={24} color={Colors.primary} />
-              </View>
-              
-              <View style={styles.listInfo}>
-                <Text style={styles.listName}>{list.name}</Text>
-                <Text style={styles.listSubtitle}>
-                  {getItemCount(list.id)} items
-                </Text>
-              </View>
-              
-              <Ionicons name="chevron-forward" size={20} color={Colors.text.disabled} />
-            </Pressable>
-          ))
-        ) : (
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+        {!hasAnyLists ? (
           <View style={styles.emptyState}>
             <Ionicons name="list-outline" size={64} color={Colors.text.disabled} />
             <Text style={styles.emptyTitle}>No Lists Yet</Text>
@@ -106,6 +118,42 @@ export default function ListsScreen() {
               Tap the + button to create your first list
             </Text>
           </View>
+        ) : (
+          <>
+            {/* Personal Lists Section */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Ionicons name="person-outline" size={20} color={Colors.text.secondary} />
+                <Text style={styles.sectionTitle}>Personal Lists</Text>
+                <Text style={styles.sectionCount}>({personalLists.length})</Text>
+              </View>
+              
+              {personalLists.length > 0 ? (
+                <View style={styles.sectionContent}>
+                  {personalLists.map(renderListCard)}
+                </View>
+              ) : (
+                renderEmptySection('personal')
+              )}
+            </View>
+            
+            {/* Shared Lists Section */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <Ionicons name="people-outline" size={20} color={Colors.text.secondary} />
+                <Text style={styles.sectionTitle}>Shared Lists</Text>
+                <Text style={styles.sectionCount}>({sharedLists.length})</Text>
+              </View>
+              
+              {sharedLists.length > 0 ? (
+                <View style={styles.sectionContent}>
+                  {sharedLists.map(renderListCard)}
+                </View>
+              ) : (
+                renderEmptySection('shared')
+              )}
+            </View>
+          </>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -138,9 +186,30 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  listsContainer: {
+  content: {
     flex: 1,
-    padding: Layout.padding.lg,
+  },
+  section: {
+    paddingHorizontal: Layout.padding.lg,
+    paddingVertical: Layout.padding.lg,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: Layout.padding.md,
+  },
+  sectionTitle: {
+    ...Typography.heading,
+    fontWeight: '600',
+    marginLeft: Layout.padding.sm,
+    flex: 1,
+  },
+  sectionCount: {
+    ...Typography.caption,
+    color: Colors.text.secondary,
+  },
+  sectionContent: {
+    gap: Layout.padding.md,
   },
   listCard: {
     flexDirection: 'row',
@@ -148,7 +217,6 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.surface,
     padding: Layout.padding.lg,
     borderRadius: Layout.borderRadius.lg,
-    marginBottom: Layout.padding.md,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -182,11 +250,16 @@ const styles = StyleSheet.create({
     ...Typography.caption,
     color: Colors.text.secondary,
   },
+  sharedIndicator: {
+    color: Colors.primary,
+    fontWeight: '500',
+  },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: Layout.padding.xl * 4,
+    paddingHorizontal: Layout.padding.lg,
   },
   emptyTitle: {
     ...Typography.heading,
@@ -197,5 +270,23 @@ const styles = StyleSheet.create({
     ...Typography.body,
     color: Colors.text.secondary,
     textAlign: 'center',
+  },
+  emptySectionState: {
+    alignItems: 'center',
+    paddingVertical: Layout.padding.xl * 2,
+    paddingHorizontal: Layout.padding.lg,
+  },
+  emptySectionTitle: {
+    ...Typography.body,
+    fontWeight: '500',
+    marginTop: Layout.padding.md,
+    marginBottom: Layout.padding.sm,
+    color: Colors.text.secondary,
+  },
+  emptySectionSubtitle: {
+    ...Typography.caption,
+    color: Colors.text.secondary,
+    textAlign: 'center',
+    lineHeight: 18,
   },
 }) 

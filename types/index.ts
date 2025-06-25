@@ -39,6 +39,8 @@ export interface List {
   id: string
   groupId: string
   name: string
+  shared: boolean
+  createdBy: string
   createdAt: Date
 }
 

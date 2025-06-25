@@ -21,6 +21,7 @@ import { useCalendarStore } from '../../../store/calendarStore'
 import { useAuthStore } from '../../../store/authStore'
 import { Input } from '../../../components/common/Input'
 import { Button } from '../../../components/common/Button'
+import { TimeCarousel } from '../../../components/common/TimeCarousel'
 
 export default function CalendarScreen() {
   const { selectedDate, setSelectedDate, addEvent, events } = useCalendarStore()
@@ -57,7 +58,7 @@ export default function CalendarScreen() {
       groupId: '1',
       title: eventTitle.trim(),
       date: selectedDate,
-      time: eventTime.trim() || undefined,
+      time: eventTime || undefined,
       note: eventNote.trim() || undefined,
       memberIds: [user?.id || '1'],
       createdBy: user?.id || '1',
@@ -154,7 +155,7 @@ export default function CalendarScreen() {
               </Pressable>
             </View>
             
-            <View style={styles.modalBody}>
+            <ScrollView style={styles.modalBody} showsVerticalScrollIndicator={false}>
               <Text style={styles.dateLabel}>
                 Date: {new Date(selectedDate).toLocaleDateString('en-US', {
                   weekday: 'long',
@@ -169,10 +170,9 @@ export default function CalendarScreen() {
                 onChangeText={setEventTitle}
               />
               
-              <Input
-                placeholder="Time (e.g. 2:30 PM)"
+              <TimeCarousel
                 value={eventTime}
-                onChangeText={setEventTime}
+                onChange={setEventTime}
               />
               
               <Input
@@ -181,7 +181,7 @@ export default function CalendarScreen() {
                 onChangeText={setEventNote}
                 multiline
               />
-            </View>
+            </ScrollView>
             
             <View style={styles.modalFooter}>
               <View style={styles.modalButtons}>
@@ -289,8 +289,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.background,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    minHeight: 550,
-    maxHeight: '85%',
+    minHeight: 600,
+    maxHeight: '90%',
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -326,8 +326,6 @@ const styles = StyleSheet.create({
   modalBody: {
     flex: 1,
     padding: Layout.padding.lg,
-    paddingBottom: Layout.padding.xl,
-    minHeight: 300,
   },
   dateLabel: {
     ...Typography.body,
