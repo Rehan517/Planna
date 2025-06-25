@@ -14,9 +14,10 @@ interface InputProps {
   autoFocus?: boolean
   multiline?: boolean
   error?: string
+  maxLength?: number
 }
 
-export function Input({ placeholder, value, onChangeText, error, multiline, ...props }: InputProps) {
+export function Input({ placeholder, value, onChangeText, error, maxLength, multiline, ...props }: InputProps) {
   const [focused, setFocused] = useState(false)
   
   return (
@@ -24,7 +25,7 @@ export function Input({ placeholder, value, onChangeText, error, multiline, ...p
       <TextInput
         style={[
           styles.input,
-          multiline && styles.multilineInput,
+          multiline && styles.multiline,
           focused && styles.focused,
           error && styles.error
         ]}
@@ -34,7 +35,9 @@ export function Input({ placeholder, value, onChangeText, error, multiline, ...p
         onChangeText={onChangeText}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
+        maxLength={maxLength}
         multiline={multiline}
+        numberOfLines={multiline ? 3 : 1}
         {...props}
       />
       {error && <Text style={styles.errorText}>{error}</Text>}
@@ -55,10 +58,10 @@ const styles = StyleSheet.create({
     ...Typography.body,
     color: Colors.text.primary,
   },
-  multilineInput: {
-    height: 80,
-    paddingTop: 12,
+  multiline: {
+    height: 100,
     textAlignVertical: 'top',
+    paddingTop: 12,
   },
   focused: {
     borderColor: Colors.primary,

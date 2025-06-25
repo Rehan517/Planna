@@ -3,6 +3,8 @@ export interface User {
   email: string
   name: string
   color: string
+  dateOfBirth?: string // YYYY-MM-DD format
+  profilePicture?: string // URI to image
 }
 
 export interface Group {
