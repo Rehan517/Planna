@@ -8,9 +8,10 @@ interface AuthStore {
   login: (email: string, password: string) => Promise<void>
   register: (email: string, password: string, name: string) => Promise<void>
   logout: () => Promise<void>
+  updateUser: (updates: Partial<User>) => Promise<void>
 }
 
-export const useAuthStore = create<AuthStore>((set) => ({
+export const useAuthStore = create<AuthStore>((set, get) => ({
   user: null,
   isAuthenticated: false,
   
@@ -36,6 +37,15 @@ export const useAuthStore = create<AuthStore>((set) => ({
     }
     await AsyncStorage.setItem('user', JSON.stringify(mockUser))
     set({ user: mockUser, isAuthenticated: true })
+  },
+  
+  updateUser: async (updates: Partial<User>) => {
+    const currentUser = get().user
+    if (!currentUser) return
+    
+    const updatedUser = { ...currentUser, ...updates }
+    await AsyncStorage.setItem('user', JSON.stringify(updatedUser))
+    set({ user: updatedUser })
   },
   
   logout: async () => {
